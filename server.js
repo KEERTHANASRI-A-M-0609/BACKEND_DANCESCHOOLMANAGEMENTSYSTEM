@@ -1,84 +1,64 @@
+/*
+const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
+require("dotenv").config();
+const app = express();
+
+
+
+app.use(cors());
+app.use(express.json());
+
+//routes
+const userRoutes = require("./Routers/signupRouters");
+app.use("/api/user",userRoutes)
+mongoose
+    .connect(process.env.MONGO_URL)
+    .then(() => {
+        console.log("MongoDB Connected Successfully");
+    })
+    .catch((err) => {
+        console.error("MongoDB Connection Error:", err);
+    });
+
+    app.listen(5000,() => {
+         console.log("Server running on port 5000");
+    });
+
+    */
+
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from "dotenv";
 
-import eventRoutes from "./routes/eventRoutes.js";
-import reviewRoutes from "./routes/reviewRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
+import queryRoutes from "./routes/queryRoutes.js";
 
-import trainerRoutes from "./routes/trainerRoutes.js";
-
-
-// Load env variables
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 8000;
 
-// Middlewares
-app.use(cors());
+// middleware
 app.use(express.json());
+app.use(cors({
+  origin: "http://localhost:5173"
+}));
 
-// Routes
-app.use("/api/reviews", reviewRoutes); // ✅ FIXED (NO require)
-app.use("/api/events", eventRoutes);
-app.use('/api/trainers', trainerRoutes);
+// routes (MATCHES FRONTEND)
+app.use("/api/user", userRoutes);
+app.use("/api", queryRoutes);
 
+// MongoDB Atlas connection
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => {
+    console.log("✅ MongoDB Atlas Connected");
+    console.log("📌 Database:", mongoose.connection.name);
+  })
+  .catch(err => console.log("❌ Mongo Error:", err));
 
-// =======================
-// CLASSES (INLINE MODEL)
-// =======================
-const classSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  level: { type: String, default: "Beginner" },
-  duration: { type: String, default: "60" },
-  instructor: String,
-  description: String,
-  timings: String,
-  fee: String,
-  age: String,
-  image: String,
-});
-
-const Class = mongoose.model("Class", classSchema);
-
-app.get("/api/classes", async (req, res) => {
-  const classes = await Class.find();
-  res.json(classes);
-});
-
-app.post("/api/classes", async (req, res) => {
-  const cls = new Class(req.body);
-  await cls.save();
-  res.json(cls);
-});
-
-app.put("/api/classes/:id", async (req, res) => {
-  const updated = await Class.findByIdAndUpdate(
-    req.params.id,
-    req.body,
-    { new: true }
-  );
-  res.json(updated);
-});
-
-app.delete("/api/classes/:id", async (req, res) => {
-  await Class.findByIdAndDelete(req.params.id);
-  res.json({ message: "Class deleted" });
-});
-
-// =======================
-// MongoDB Atlas
-// =======================
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => console.log("MongoDB Atlas connected"))
-  .catch(err => console.error("Mongo error:", err));
-
-// =======================
-// Start Server
-// =======================
+const PORT = 8000;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
-
