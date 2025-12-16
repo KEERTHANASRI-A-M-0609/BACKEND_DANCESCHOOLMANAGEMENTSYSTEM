@@ -16,4 +16,11 @@ router.post("/query", async (req, res) => {
   }
 });
 
+
+router.post("/query", (req, res) => {
+    console.log(req.body);
+    res.json({ message: "Query received successfully" });
+});
+
+
 export default router;
